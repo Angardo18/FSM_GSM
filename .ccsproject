@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?ccsproject version="1.0"?>
+<projectOptions>
+	<ccsVersion value="11.2.0"/>
+	<deviceVariant value="TMS320C28XX.TMS320F280025C"/>
+	<deviceFamily value="C2000"/>
+	<deviceEndianness value="little"/>
+	<codegenToolVersion value="21.6.0.LTS"/>
+	<isElfFormat value="true"/>
+	<rts value="libc.a"/>
+	<createSlaveProjects value=""/>
+	<templateProperties value="id=empty_driverlib_project.projectspec.empty_driverlib_project"/>
+	<origin value="D:\SDKs\ti\c2000\C2000Ware_4_01_00_00\driverlib\f28002x\examples\empty_projects\CCS\empty_driverlib_project.projectspec"/>
+	<filesToOpen value=""/>
+</projectOptions>
