@@ -13,7 +13,12 @@
 //---------------- prototipos de funciones --------------
 void UartConfig();
 __interrupt void RxHandler();
+void gsmStartUp();
+//--------------- Variables globales -------------------
 
+// 2: ok recibido.
+volatile uint16_t fsmGsmState = 0;
+char messageOut[256]; //buffer para mensajes de salida
 
 void main(void){
 
@@ -22,13 +27,68 @@ void main(void){
         SysCtl_resetMCD();
     }
 
+    // ---- GPIO config ----------
+    GPIO_setPinConfig(GPIO_4_GPIO4);
+    GPIO_setDirectionMode(4, GPIO_DIR_MODE_OUT);
+
 
     UartConfig();
 
     Interrupt_initModule();
     Interrupt_initVectorTable();
+
+
+    gsmStartUp(); // señal de inicio
+    messageOut = "AT\r\n"
+    SCI_writeCharArray(SCIA_BASE, messageOut, 5);
+    SysCtl_delay(100000); // esperar el mensaje
+    while(fsmGsmState != 2) {
+        gsmStartUp(); // señal de inicio
+        SysCtl_delay(100000); // esperar el mensaje
+    }
+    // si llega aqui es que si responde el modulo GSM
+    fsmGsmState = 0; // reiniciar la maquina
+
+    messageOut = "AT+CMGF=1\r\n";
+    SCI_writeCharArray(SCIA_BASE, messageOut, 11);
+    while(fsmGsmState != 2) {
+        gsmStartUp(); // señal de inicio
+        SysCtl_delay(100000); // esperar el mensaje
+    }
+    fsmGsmState = 0; // reiniciar la maquina
+
+    messageOut = "AT+CMGS=\”+50254605224\”\r\n";
+    SCI_writeCharArray(SCIA_BASE, messageOut, 24);
+    messageOut = "Hola a todos, hablando desde un micro";
+
+    SCI_writeCharArray(SCIA_BASE, messageOut, 11);
+    while(fsmGsmState != 2) {
+        gsmStartUp(); // señal de inicio
+        SysCtl_delay(100000); // esperar el mensaje
+    }
+    fsmGsmState = 0; // reiniciar la maquina
+
+    while(1){
+        ESTOP;
+    }
+
+
+}
+//--------------- GSM funciones --------------------
+
+
+void gsmStartUp(){
+    // power on gsm
+    GPIO_writePin(4, 0);
+    SysCtl_delay(50000000);
+    GPIO_writePin(4, 1);
+    SysCtl_delay(100000000);
+    GPIO_writePin(4, 0);
+    SysCtl_delay(150000000);
 }
 
+
+//---------------- UART funciones ------------------
 
 void UartConfig(){
 
@@ -64,10 +124,25 @@ void UartConfig(){
 
 __interrupt
 void RxHandler(){
-    flag =1;
-    SCI_readCharArray(SCIA_BASE,  datos , 16);
+    uint16_t data;
+    SCI_readCharArray(SCIA_BASE,  &data , 1);
     SCI_clearOverflowStatus(SCIA_BASE);
     SCI_clearInterruptStatus(SCIA_BASE, SCI_INT_RXFF);
+
+
+    switch(data){
+
+        case 'O':
+            if(fsmGsmState==0) fsmGsmState = 1;
+            break;
+        case 'K':
+            if(fsmGsmState=1) fsmGsmState  =2;
+            break;
+        default:
+            fsmGsmState = 0;
+    }
+
+
     Interrupt_clearACKGroup(INTERRUPT_ACK_GROUP9);
 }
 
