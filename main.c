@@ -105,7 +105,7 @@ void UartConfig(){
     GPIO_setQualificationMode(3, GPIO_QUAL_ASYNC);
     // SCI module configuration
     SCI_performSoftwareReset(SCIA_BASE); // reset SCIA
-    SCI_setConfig(SCIA_BASE, SysCtl_getClock(10000000)/4, 115200, (SCI_CONFIG_WLEN_8 |
+    SCI_setConfig(SCIA_BASE, SysCtl_getClock(10000000)/4, 9600, (SCI_CONFIG_WLEN_8 |
                                                         SCI_CONFIG_STOP_ONE |
                                                         SCI_CONFIG_PAR_NONE));
     SCI_resetChannels(SCIA_BASE);
