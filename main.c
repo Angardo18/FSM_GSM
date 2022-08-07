@@ -18,7 +18,7 @@ void gsmStartUp();
 
 // 2: ok recibido.
 volatile uint16_t fsmGsmState = 0;
-char messageOut[256]; //buffer para mensajes de salida
+char *messageOut; //buffer para mensajes de salida
 
 void main(void){
 
@@ -39,7 +39,7 @@ void main(void){
 
 
     gsmStartUp(); // señal de inicio
-    messageOut = "AT\r\n"
+    messageOut = "AT\r\n";
     SCI_writeCharArray(SCIA_BASE, messageOut, 5);
     SysCtl_delay(100000); // esperar el mensaje
     while(fsmGsmState != 2) {
@@ -52,7 +52,7 @@ void main(void){
     messageOut = "AT+CMGF=1\r\n";
     SCI_writeCharArray(SCIA_BASE, messageOut, 11);
     while(fsmGsmState != 2) {
-        gsmStartUp(); // señal de inicio
+
         SysCtl_delay(100000); // esperar el mensaje
     }
     fsmGsmState = 0; // reiniciar la maquina
@@ -63,13 +63,12 @@ void main(void){
 
     SCI_writeCharArray(SCIA_BASE, messageOut, 11);
     while(fsmGsmState != 2) {
-        gsmStartUp(); // señal de inicio
         SysCtl_delay(100000); // esperar el mensaje
     }
     fsmGsmState = 0; // reiniciar la maquina
 
     while(1){
-        ESTOP;
+        ESTOP0;
     }
 
 
@@ -136,7 +135,7 @@ void RxHandler(){
             if(fsmGsmState==0) fsmGsmState = 1;
             break;
         case 'K':
-            if(fsmGsmState=1) fsmGsmState  =2;
+            if(fsmGsmState=1) fsmGsmState = 2;
             break;
         default:
             fsmGsmState = 0;
