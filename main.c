@@ -10,6 +10,9 @@
 #include "device.h"
 #include <string.h>
 
+
+#define DEVICE_SYSCLK_FREQ 50000000
+
 //---------------- prototipos de funciones --------------
 void UartConfig();
 __interrupt void RxHandler();
@@ -40,29 +43,26 @@ void main(void){
     gsmStartUp(); // señal de inicio
     strcpy(messageOut, "AT\r\n");
     SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut, 5);
-    SysCtl_delay(100000); // esperar el mensaje
+    DEVICE_DELAY_US(5000);
+
     while(fsmGsmState != 2) {
         gsmStartUp(); // señal de inicio
-        SCI_writeCharArray(SCIA_BASE, messageOut, 5);
-        SysCtl_delay(100000); // esperar el mensaje
+        SCI_writeCharArray(SCIA_BASE, (uint16_t *) messageOut, 5);
+        DEVICE_DELAY_US(5000);
     }
     // si llega aqui es que si responde el modulo GSM
     fsmGsmState = 0; // reiniciar la maquina
     strcpy(messageOut, "AT+CMGF=1\r\n");
     SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut, 11);
 
-    while(fsmGsmState != 2) {
-        SysCtl_delay(100000); // esperar el mensaje
-    }
+    while(fsmGsmState != 2);
     fsmGsmState = 0; // reiniciar la maquina
 
     strcpy(messageOut, "AT+CMGS=\"+50254605224\"\r\n");
     SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut, 24);
     strcpy(messageOut, "Hola a todos, hablando desde un micro");
     SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut,37);
-    while(fsmGsmState != 2) {
-        SysCtl_delay(100000); // esperar el mensaje
-    }
+    while(fsmGsmState != 2);
     fsmGsmState = 0; // reiniciar la maquina
 
     while(1){
