@@ -8,7 +8,7 @@
 */
 #include "driverlib.h"
 #include "device.h"
-
+#include <string.h>
 
 //---------------- prototipos de funciones --------------
 void UartConfig();
@@ -18,7 +18,7 @@ void gsmStartUp();
 
 // 2: ok recibido.
 volatile uint16_t fsmGsmState = 0;
-char *messageOut; //buffer para mensajes de salida
+char messageOut[256]; //buffer para mensajes de salida
 
 void main(void){
 
@@ -38,31 +38,28 @@ void main(void){
     ERTM;
 
     gsmStartUp(); // señal de inicio
-    messageOut = "AT\r\n";
-    SCI_writeCharArray(SCIA_BASE, messageOut, 5);
+    strcpy(messageOut, "AT\r\n");
+    SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut, 5);
     SysCtl_delay(100000); // esperar el mensaje
     while(fsmGsmState != 2) {
         gsmStartUp(); // señal de inicio
-        messageOut = "AT\r\n";
         SCI_writeCharArray(SCIA_BASE, messageOut, 5);
         SysCtl_delay(100000); // esperar el mensaje
     }
     // si llega aqui es que si responde el modulo GSM
     fsmGsmState = 0; // reiniciar la maquina
+    strcpy(messageOut, "AT+CMGF=1\r\n");
+    SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut, 11);
 
-    messageOut = "AT+CMGF=1\r\n";
-    SCI_writeCharArray(SCIA_BASE, messageOut, 11);
     while(fsmGsmState != 2) {
-
         SysCtl_delay(100000); // esperar el mensaje
     }
     fsmGsmState = 0; // reiniciar la maquina
 
-    messageOut = "AT+CMGS=\”+50254605224\”\r\n";
-    SCI_writeCharArray(SCIA_BASE, messageOut, 24);
-    messageOut = "Hola a todos, hablando desde un micro";
-
-    SCI_writeCharArray(SCIA_BASE, messageOut, 11);
+    strcpy(messageOut, "AT+CMGS=\"+50254605224\"\r\n");
+    SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut, 24);
+    strcpy(messageOut, "Hola a todos, hablando desde un micro");
+    SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut,37);
     while(fsmGsmState != 2) {
         SysCtl_delay(100000); // esperar el mensaje
     }
@@ -80,11 +77,11 @@ void main(void){
 void gsmStartUp(){
     // power on gsm
     GPIO_writePin(4, 0);
-    SysCtl_delay(50000000);
+    DEVICE_DELAY_US(1000000);
     GPIO_writePin(4, 1);
-    SysCtl_delay(100000000);
+    DEVICE_DELAY_US(2000000);
     GPIO_writePin(4, 0);
-    SysCtl_delay(150000000);
+    DEVICE_DELAY_US(3000000);
 }
 
 
@@ -119,6 +116,7 @@ void UartConfig(){
     SCI_setFIFOInterruptLevel(SCIA_BASE, SCI_FIFO_TX16, SCI_FIFO_RX1);
     /*---------INTERRUPT------------------*/
     Interrupt_register(INT_SCIA_RX, &RxHandler);
+    Interrupt_enable(INT_SCIA_RX);
 
 
     return;
