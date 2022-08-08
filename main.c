@@ -44,6 +44,8 @@ void main(void){
     SysCtl_delay(100000); // esperar el mensaje
     while(fsmGsmState != 2) {
         gsmStartUp(); // señal de inicio
+        messageOut = "AT\r\n";
+        SCI_writeCharArray(SCIA_BASE, messageOut, 5);
         SysCtl_delay(100000); // esperar el mensaje
     }
     // si llega aqui es que si responde el modulo GSM
