@@ -60,7 +60,7 @@ void main(void){
 
     strcpy(messageOut, "AT+CMGS=\"+50254605224\"\r\n");
     SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut, 24);
-    strcpy(messageOut, "Hola a todos, hablando desde un micro");
+    strcpy(messageOut, "Hola a todos, hablando desde un micro\x1b");
     SCI_writeCharArray(SCIA_BASE,(uint16_t *) messageOut,37);
     while(fsmGsmState != 2);
     fsmGsmState = 0; // reiniciar la maquina

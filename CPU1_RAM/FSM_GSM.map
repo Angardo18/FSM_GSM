@@ -1,7 +1,7 @@
 ******************************************************************************
              TMS320C2000 Linker PC v21.6.0                     
 ******************************************************************************
->> Linked Sun Aug  7 23:17:19 2022
+>> Linked Sun Aug  7 23:23:54 2022
 
 OUTPUT FILE NAME:   <FSM_GSM.out>
 ENTRY POINT SYMBOL: "code_start"  address: 00000000
@@ -16,7 +16,7 @@ MEMORY CONFIGURATION
   RAMM0                 00000128   000002d8  00000020  000002b8  RWIX
   RAMM1                 00000400   000003f8  00000200  000001f8  RWIX
   RAMLS4567             0000a000   00002000  00000e59  000011a7  RWIX
-  RAMGS0                0000c000   000007f8  000002ad  0000054b  RWIX
+  RAMGS0                0000c000   000007f8  000002af  00000549  RWIX
   FLASH_BANK0_SEC0      00080002   00000ffe  00000000  00000ffe  RWIX
   FLASH_BANK0_SEC1      00081000   00001000  00000000  00001000  RWIX
   FLASH_BANK0_SEC2      00082000   00001000  00000000  00001000  RWIX
@@ -160,20 +160,21 @@ codestart
                   0000ae56    00000002                            : _lock.c.obj (.data:_unlock)
                   0000ae58    00000001     main.obj (.data)
 
-.const     0    0000c000    000002ad     
-                  0000c000    000000e4     main.obj (.const:.string)
-                  0000c0e4    0000009a     driverlib.lib : sysctl.obj (.const:.string)
-                  0000c17e    00000098                   : gpio.obj (.const:.string)
-                  0000c216    00000097                   : sci.obj (.const:.string)
+.const     0    0000c000    000002af     
+                  0000c000    000000e5     main.obj (.const:.string)
+                  0000c0e5    00000001     --HOLE-- [fill = 0]
+                  0000c0e6    0000009a     driverlib.lib : sysctl.obj (.const:.string)
+                  0000c180    00000098                   : gpio.obj (.const:.string)
+                  0000c218    00000097                   : sci.obj (.const:.string)
 
 MODULE SUMMARY
 
        Module                        code   ro data   rw data
        ------                        ----   -------   -------
     .\
-       main.obj                      776    228       257    
+       main.obj                      776    229       257    
     +--+-----------------------------+------+---------+---------+
-       Total:                        776    228       257    
+       Total:                        776    229       257    
                                                              
     .\device\
        f28002x_codestartbranch.obj   10     0         0      
@@ -209,7 +210,7 @@ MODULE SUMMARY
        Stack:                        0      0         512    
        Linker Generated:             0      27        0      
     +--+-----------------------------+------+---------+---------+
-       Grand Total:                  3412   712       779    
+       Grand Total:                  3412   713       779    
 
 
 LINKER GENERATED COPY TABLES
