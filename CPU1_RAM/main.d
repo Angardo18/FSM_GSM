@@ -1,7 +1,7 @@
 # FIXED
 
 main.obj: ../main.c
-main.obj: D:/programacion/C2000Ware/empty_driverlib_project/device/driverlib.h
+main.obj: D:/programacion/C2000Ware/FSM_GSM/device/driverlib.h
 main.obj: D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/inc/hw_memmap.h
 main.obj: D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/adc.h
 main.obj: D:/programas/ti/ccs/tools/compiler/ti-cgt-c2000_21.6.0.LTS/include/stdbool.h
@@ -84,11 +84,11 @@ main.obj: D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/inc/
 main.obj: D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/spi.h
 main.obj: D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/inc/hw_spi.h
 main.obj: D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/version.h
-main.obj: D:/programacion/C2000Ware/empty_driverlib_project/device/device.h
+main.obj: D:/programacion/C2000Ware/FSM_GSM/device/device.h
 
 ../main.c:
 
-D:/programacion/C2000Ware/empty_driverlib_project/device/driverlib.h:
+D:/programacion/C2000Ware/FSM_GSM/device/driverlib.h:
 
 D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/inc/hw_memmap.h:
 
@@ -254,5 +254,5 @@ D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/inc/hw_spi.h:
 
 D:/SDKs/ti/c2000/C2000Ware_4_01_00_00/driverlib/f28002x/driverlib/version.h:
 
-D:/programacion/C2000Ware/empty_driverlib_project/device/device.h:
+D:/programacion/C2000Ware/FSM_GSM/device/device.h:
 
