@@ -31,12 +31,11 @@ void main(void){
     GPIO_setPinConfig(GPIO_4_GPIO4);
     GPIO_setDirectionMode(4, GPIO_DIR_MODE_OUT);
 
-
-    UartConfig();
-
     Interrupt_initModule();
     Interrupt_initVectorTable();
-
+    UartConfig();
+    EINT;
+    ERTM;
 
     gsmStartUp(); // señal de inicio
     messageOut = "AT\r\n";
@@ -120,6 +119,8 @@ void UartConfig(){
     SCI_setFIFOInterruptLevel(SCIA_BASE, SCI_FIFO_TX16, SCI_FIFO_RX1);
     /*---------INTERRUPT------------------*/
     Interrupt_register(INT_SCIA_RX, &RxHandler);
+
+
     return;
 }
 
