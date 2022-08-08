@@ -137,7 +137,7 @@ void RxHandler(){
             if(fsmGsmState==0) fsmGsmState = 1;
             break;
         case 'K':
-            if(fsmGsmState=1) fsmGsmState = 2;
+            if(fsmGsmState==1) fsmGsmState = 2;
             break;
         default:
             fsmGsmState = 0;
