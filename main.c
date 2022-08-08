@@ -44,9 +44,7 @@ void main(void){
     SysCtl_delay(100000); // esperar el mensaje
     while(fsmGsmState != 2) {
         gsmStartUp(); // señal de inicio
-        messageOut = "AT\r\n";
-        SCI_writeCharArray(SCIA_BASE, messageOut, 5);
-       SysCtl_delay(100000); // esperar el mensaje
+        SysCtl_delay(100000); // esperar el mensaje
     }
     // si llega aqui es que si responde el modulo GSM
     fsmGsmState = 0; // reiniciar la maquina
@@ -54,6 +52,7 @@ void main(void){
     messageOut = "AT+CMGF=1\r\n";
     SCI_writeCharArray(SCIA_BASE, messageOut, 11);
     while(fsmGsmState != 2) {
+
         SysCtl_delay(100000); // esperar el mensaje
     }
     fsmGsmState = 0; // reiniciar la maquina
@@ -136,7 +135,7 @@ void RxHandler(){
             if(fsmGsmState==0) fsmGsmState = 1;
             break;
         case 'K':
-            if(fsmGsmState==1) fsmGsmState  =2;
+            if(fsmGsmState=1) fsmGsmState = 2;
             break;
         default:
             fsmGsmState = 0;

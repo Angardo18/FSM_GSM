@@ -12,4 +12,5 @@
 	<templateProperties value="id=empty_driverlib_project.projectspec.empty_driverlib_project"/>
 	<origin value="D:\SDKs\ti\c2000\C2000Ware_4_01_00_00\driverlib\f28002x\examples\empty_projects\CCS\empty_driverlib_project.projectspec"/>
 	<filesToOpen value=""/>
+	<isTargetManual value="true"/>
 </projectOptions>
