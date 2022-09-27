@@ -70,6 +70,7 @@ volatile uint16_t flags_rx = 0x0000;
  *     bit 6 = SAPBR ok
  *     bit 7 = data to send (HTTP)
  *     bit 8 = HTTP ACTION ok (codigo 200)
+ *     bit 9 = ERROR bit
  */
 #define OK_BIT 0
 #define SEND_BIT 1
@@ -80,6 +81,7 @@ volatile uint16_t flags_rx = 0x0000;
 #define SAPBR_BIT 6
 #define DOWNLOAD_BIT 7
 #define CODE200_BIT 8
+#define ERROR_BIT 9
 uint16_t mainFsm = 0;
 /*
  * 0: estado inicial
@@ -227,6 +229,9 @@ void main(void){
                 if(flags_rx &(1<<OK_BIT)){
                     mainFsm =23;
                     flags_rx &= ~(1<<OK_BIT); //apagar el bit ok
+                }else if(flags_rx &(1<<ERROR_BIT)){
+                    mainFsm =31;
+                    flags_rx &= ~(1<<ERROR_BIT); //apagar el bit ok
                 }
                 break;
             case 23:
@@ -245,6 +250,9 @@ void main(void){
                 if(flags_rx &(1<<OK_BIT)){
                     mainFsm =25;
                     flags_rx &= ~(1<<OK_BIT); //apagar el bit ok
+                }else if(flags_rx &(1<<ERROR_BIT)){
+                    mainFsm =30;
+                    flags_rx &= ~(1<<ERROR_BIT); //apagar el bit ok
                 }
                 break;
             case 25:
@@ -288,12 +296,31 @@ void main(void){
 
             case 29:
                 //se indica el alrgo de los datos a enviar
-                gsmSend("AT+HTTPACTION=1\r\n", 17, 2, CODE200_BIT,20);
+                gsmSend("AT+HTTPACTION=1\r\n", 17, 2, CODE200_BIT,100);
                 if(flags_rx &(1<<CODE200_BIT)){
-                    mainFsm =30;
                     flags_rx &= ~(1<<CODE200_BIT); //apagar el bit ok
+                    mainFsm =30;
                 }
+
+
                 break;
+            case 30:
+                gsmSend("AT+HTTPTERM\r\n", 13, 2, OK_BIT,20);
+                if(flags_rx &(1<<OK_BIT)){
+                    mainFsm = 24;
+                    flags_rx &= ~(1<<OK_BIT); //apagar el bit ok
+                }else if(flags_rx &(1<<ERROR_BIT)){
+                    mainFsm = 20; //se vuelven a iniciar los servicios IP
+                    flags_rx &= ~(1<<OK_BIT); //apagar el bit ok
+                }
+                DEVICE_DELAY_US(10000000); //esperar 10 segundos
+                break;
+            case 31:
+                gsmSend("AT+SAPBR=0,1\r\n", 14, 2, OK_BIT,20);
+                if(flags_rx &(1<<OK_BIT)){
+                    mainFsm = 20;
+                    flags_rx &= ~(1<<OK_BIT); //apagar el bit ok
+                }
 
             default:
                 break;
@@ -362,7 +389,7 @@ void UartConfig(){
     GPIO_setQualificationMode(3, GPIO_QUAL_ASYNC);
     // SCI module configuration
     SCI_performSoftwareReset(SCIA_BASE); // reset SCIA
-    SCI_setConfig(SCIA_BASE, SysCtl_getClock(10000000)/4, 9600, (SCI_CONFIG_WLEN_8 |
+    SCI_setConfig(SCIA_BASE, SysCtl_getClock(10000000)/4, 57600, (SCI_CONFIG_WLEN_8 |
                                                         SCI_CONFIG_STOP_ONE |
                                                         SCI_CONFIG_PAR_NONE));
     SCI_resetChannels(SCIA_BASE);
@@ -398,6 +425,7 @@ void RxHandler(){
             else if (data =='+') fsmGsmState = 12;
             else if (data=='>')fsmGsmState = 10;
             else if (data=='D') fsmGsmState = 50;
+            else if (data =='E') fsmGsmState = 80;
             else
                 fsmGsmState = 0;
             break;
@@ -585,7 +613,7 @@ void RxHandler(){
             if(data =='A')fsmGsmState = 56;
             else fsmGsmState = 0;
             break;
-        case 57:
+        case 56:
             //SECUENCIA DONWLOA
             if(data =='D') flags_rx|= 1<<DOWNLOAD_BIT; //Se activa el bit
             fsmGsmState = 0;
@@ -643,17 +671,41 @@ void RxHandler(){
             else fsmGsmState = 0;
             break;
         case 73:
-            if(data == '2') fsmGsmState =74;
+            //if(data == '2') fsmGsmState =74;
+            if(data >=48 && data<=57) fsmGsmState =74;
             else fsmGsmState = 0;
             break;
         case 74:
-            if(data == '0') fsmGsmState =74;
+            //if(data == '0') fsmGsmState =75;
+            if(data >=48 && data<=57) fsmGsmState =75;
+            else fsmGsmState = 0;
+            break;
+        case 75:
+            //if (data == '0') fsmGsmState = 75;
+            if(data >=48 && data<=57) fsmGsmState =75;
             else if(data==','){
                 fsmGsmState = 0;
                 flags_rx|= 1<<CODE200_BIT;
             }
             else fsmGsmState = 0;
             break;
+
+        case 80:
+            if(data=='R') fsmGsmState = 81;
+            else fsmGsmState = 0;
+            break;
+
+        case 81:
+            if(data =='R') fsmGsmState = 81;
+            else if('O') fsmGsmState = 82;
+            else fsmGsmState=0;
+            break;
+        case 82:
+            if(data =='R') flags_rx |= 1<<ERROR_BIT;
+            fsmGsmState=0;
+            break;
+
+
         default:
             fsmGsmState = 0;
     }
