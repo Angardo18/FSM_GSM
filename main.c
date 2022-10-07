@@ -12,6 +12,9 @@
 #include <string.h>
 
 
+//------------------ ADC --------------------------------
+void AdcConfig();
+uint16_t AdcMeasure();
 //---------------- prototipos de funciones --------------
 void UartConfig();
 __interrupt void RxHandler();
@@ -59,7 +62,6 @@ volatile uint16_t fsmGsmState = 0;
  * ...
  * 76: +HTTPACTION: 1,200
  * */
-volatile uint16_t flags_rx = 0x0000;
 /**
  *     bit 0 = gsm responde (1 si, 0 no)
  *     bit 1 = espera de mensaje a enviar
@@ -82,6 +84,8 @@ volatile uint16_t flags_rx = 0x0000;
 #define DOWNLOAD_BIT 7
 #define CODE200_BIT 8
 #define ERROR_BIT 9
+volatile uint16_t flags_rx =1<<SMS_BIT;
+
 uint16_t mainFsm = 0;
 /*
  * 0: estado inicial
@@ -109,6 +113,7 @@ uint16_t mainFsm = 0;
 uint16_t contData = 0;
 char *out;
 uint16_t dataLenght=0;
+uint16_t adcIn = 0;
 
 
 void main(void){
@@ -128,6 +133,7 @@ void main(void){
     Interrupt_initModule();
     Interrupt_initVectorTable();
     UartConfig();
+    AdcConfig();
     // habilitar interrupciones.
     EINT;
     ERTM;
@@ -192,7 +198,7 @@ void main(void){
             case 11:
                 // enviar el sms
                 flags_rx &= ~(1<<SEND_BIT);
-                gsmSend("AT+CMGS=\"+50254605224\"\r\n", 24 , 1, SEND_BIT,2);
+                gsmSend("AT+CMGS=\"+50255178435\"\r\n", 24 , 1, SEND_BIT,2);
                 DEVICE_DELAY_US(1000000);
                 // si es 0 se sale, de lo contrario se procede a
                 // escribir el mensaje.
@@ -200,14 +206,22 @@ void main(void){
                 break;
 
             case 12:
+
                 // escribir el mensaje
-                gsmSend("Mensajes desde el TMS320F0023C\x1a", 31, 1, OKSEND_BIT,2);
+                sprintf(out, "Corriente Medida:%d\x1a",adcIn);
+                dataLenght = strlen(out);
+                gsmSend(out, dataLenght, 1, OKSEND_BIT,2);
+                //gsmSend("Mensajes desde el TMS320F0023C\x1a", 31, 1, OKSEND_BIT,2);
                 DEVICE_DELAY_US(5000000);
                 if(flags_rx &(1<<OKSEND_BIT)) mainFsm =13;
 
                 //levatar servicio HTTP
                 break;
             case 13:
+                // se vuele a medir la corriente
+                adcIn = AdcMeasure();
+                DEVICE_DELAY_US(5000000);
+                mainFsm = 11; // enviar otro mensaje
                 break;
 
             case 20:
@@ -407,6 +421,56 @@ void UartConfig(){
 
 
     return;
+}
+
+// ----------------- ADC -------------
+
+
+void AdcConfig(){
+    SysCtl_enablePeripheral(SYSCTL_PERIPH_CLK_ADCA);
+
+   //---------- ASYSCLT --------------------
+   // Analog PinMux for A1
+   GPIO_setPinConfig(GPIO_232_GPIO232);
+   // AIO -> Analog mode selected
+   GPIO_setAnalogMode(232, GPIO_ANALOG_ENABLED);
+   GPIO_setAnalogMode(233, GPIO_ANALOG_ENABLED);
+   // Analog PinMux for A2/C9
+   GPIO_setPinConfig(GPIO_224_GPIO224);
+   // AIO -> Analog mode selected
+   GPIO_setAnalogMode(224, GPIO_ANALOG_ENABLED);
+   // Analog PinMux for A3/C5/VDAC
+   GPIO_setPinConfig(GPIO_242_GPIO242);
+   // Set the analog voltage reference selection to internal.
+   ASysCtl_setAnalogReferenceInternal( ASYSCTL_VREFHIA | ASYSCTL_VREFHIC );
+   // Set the internal analog voltage reference selection to 1.65V.
+   ASysCtl_setAnalogReference1P65( ASYSCTL_VREFHIA | ASYSCTL_VREFHIC );
+   //----------CONF ADCA--------------------
+   ADC_setOffsetTrimAll(ADC_REFERENCE_INTERNAL,ADC_REFERENCE_3_3V);
+   ADC_setPrescaler(ADCA_BASE, ADC_CLK_DIV_2_0); //ADCCLK = 50 MHz
+   ADC_setInterruptPulseMode(ADCA_BASE, ADC_PULSE_END_OF_CONV);
+   ADC_enableConverter(ADCA_BASE);
+   // delay para esperar el inicio del modulo
+   DEVICE_DELAY_US(5000);
+
+   ADC_disableBurstMode(ADCA_BASE);
+   ADC_setSOCPriority(ADCA_BASE, ADC_PRI_ALL_ROUND_ROBIN);
+
+   //configurar SOC
+   ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER0 , ADC_TRIGGER_SW_ONLY ,ADC_CH_ADCIN3, 20);
+   ADC_setInterruptSOCTrigger(ADCA_BASE, ADC_SOC_NUMBER0, ADC_INT_SOC_TRIGGER_NONE);
+   //Interrupcion de EOC
+   ADC_setInterruptSource(ADCA_BASE,ADC_INT_NUMBER1,ADC_SOC_NUMBER0);
+   ADC_enableInterrupt(ADCA_BASE, ADC_INT_NUMBER1);
+}
+
+uint16_t AdcMeasure(){
+    ADC_forceSOC(ADCA_BASE, ADC_SOC_NUMBER0);
+    //esperar a que termine la conversión
+    while(!ADC_getInterruptStatus(ADCA_BASE, ADC_INT_NUMBER1));
+    ADC_clearInterruptStatus(ADCA_BASE, ADC_INT_NUMBER1);
+    return ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER0);
+
 }
 
 __interrupt
